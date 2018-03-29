@@ -34,3 +34,6 @@ docs/_build/*
 # tests
 .coverage
 .hypothesis
+
+# pycharm
+.idea/
