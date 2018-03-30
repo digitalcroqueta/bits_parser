@@ -429,7 +429,7 @@ class BITSParser:
 
                                 final_row = []
                                 for v in temp:
-                                    if type(v) == str:
+                                    if type(v) == str or type(v) == unicode:
                                         final_row.append(v.encode('ascii', 'xmlcharrefreplace').replace('\n', '; ').replace('\r', ''))
                                     else:
                                         final_row.append(v)
@@ -515,30 +515,32 @@ class BITSParser:
                 u'other_time2': j.other_time2.strftime("%Y-%m-%d %H:%M:%S.%f")
             }
 
-            temp = j.files.replace("[", "").replace("]", "").split(", ")
-            t = ''.join([chr(int(item)) for item in temp])
+            if int(j.file_count) > 0:
+                temp = j.files.replace("[", "").replace("]", "").split(", ")
+                t = ''.join([chr(int(item)) for item in temp])
 
-            xfers = (x for x in t.split(self.xfer_delimiter))
+                xfers = (x for x in t.split(self.xfer_delimiter))
 
-            files_in_job = int(j.file_count)
+                files_in_job = int(j.file_count)
 
-            count = files_in_job
-            for i in xfers:
-                if count > 0:
-                    try:
-                        fil = self.FILE.parse(i)
-                        parsed_file = {}
-                        for hh in h:
-                            try:
-                                parsed_file[hh] = fil[hh]
-                            except (KeyError, AttributeError):
-                                parsed_file[hh] = 'n/a'
+                count = files_in_job
+                for i in xfers:
+                    if count > 0:
+                        try:
+                            fil = self.FILE.parse(i)
+                            parsed_file = {}
+                            for hh in h:
+                                try:
+                                    parsed_file[hh] = fil[hh]
+                                except (KeyError, AttributeError):
+                                    parsed_file[hh] = 'n/a'
 
-                        if parsed_file not in parsed_job[u'files']:
-                            parsed_job[u'files'].append(parsed_file)
-                    except (core.RangeError, core.FieldError):
-                        self.thread_logger.warning('%d bytes of unknown data' % len(i))
-                    count -= 1
+                            if parsed_file not in parsed_job[u'files']:
+                                parsed_job[u'files'].append(parsed_file)
+                        except (core.RangeError, core.FieldError):
+                            self.thread_logger.warning('%d bytes of unknown data' % len(i))
+                        count -= 1
+
             # print parsed_job
             if parsed_job not in jobs and parsed_job.values().count('n/a') <= 14:
                 jobs.append(parsed_job)
